@@ -1,0 +1,7 @@
+name: inttravel-demo
+channels:
+  - pytorch
+  - defaults
+dependencies:
+  - python=3.10
+  - pytorch>=2.1
