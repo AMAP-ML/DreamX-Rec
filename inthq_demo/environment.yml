@@ -1,8 +1,0 @@
-name: inthq-min-demo
-channels:
-  - conda-forge
-dependencies:
-  - python=3.10
-  - pip
-  - pip:
-      - torch>=2.0
