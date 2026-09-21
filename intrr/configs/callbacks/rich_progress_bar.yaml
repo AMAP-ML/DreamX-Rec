@@ -1,0 +1,7 @@
+## Callback to show a progress bar using the Rich library.
+## Implements callback from https://lightning.ai/docs/pytorch/latest/api/lightning.pytorch.callbacks.RichProgressBar.html
+## Does not work well for unbounded datasets.
+# https://lightning.ai/docs/pytorch/latest/api/lightning.pytorch.callbacks.RichProgressBar.html
+
+rich_progress_bar:
+  _target_: lightning.pytorch.callbacks.RichProgressBar

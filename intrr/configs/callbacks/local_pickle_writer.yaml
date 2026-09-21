@@ -1,0 +1,7 @@
+## Inference callback to write predictions local pickle files
+pickle_writer:
+  _target_: src.utils.inference_utils.LocalPickleWriter
+  output_dir: ${paths.output_dir}/pickle
+  flush_frequency: 100000
+  write_interval: batch
+  should_merge_files_on_main: True

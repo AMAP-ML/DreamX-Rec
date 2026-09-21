@@ -1,0 +1,25 @@
+# path to root directory
+# this requires PROJECT_ROOT environment variable to exist
+# you can replace it with "." if you want the root to be the current working directory
+root_dir: .
+
+# path to data directory
+data_dir: ???
+
+# path to logging directory
+log_dir: ${paths.root_dir}/logs
+# path to output directory, created dynamically by hydra
+# path generation pattern is specified in `configs/hydra/default.yaml`
+# use it to store all files generated during the run, like ckpts and metrics
+output_dir: ${hydra:runtime.output_dir}
+
+# path to working directory
+work_dir: ${hydra:runtime.cwd}
+
+# We define profile_dir as different than output dir as gcs paths
+# are not supported by the profiler. At the end of the run, we copy
+# the profiler output to the output_dir
+profile_dir: ${hydra:run.dir}/profile_output
+
+# Path for metadata used to retry jobs if they fail.
+metadata_dir: ${paths.output_dir}/metadata

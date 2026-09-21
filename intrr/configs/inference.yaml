@@ -1,0 +1,33 @@
+# @package _global_
+
+defaults:
+  - model: null # we need to have model before self to override the default model parameters that are not used in inference
+  - _self_
+  - paths: default
+  - logger: csv
+  - trainer: default
+  - hydra: default
+  - data_loading: null
+  - extras: default
+  - experiment: null
+
+task_name: "inference"
+id: ${now:%Y-%m-%d}/${now:%H-%M-%S}
+tags: ["inference"]
+
+experiment: null
+
+model:
+  loss_function: null
+  optimizer: null
+  scheduler: null
+  evaluator: null
+
+callbacks:
+  bq_writer:
+    table_id: ???
+
+
+
+# passing checkpoint path is necessary for inference
+ckpt_path: ???
