@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1680" height="1120" viewBox="0 0 1680 1120" role="img" aria-labelledby="title desc">
+<title id="title">DreamX-Rec — Generative Recommendation System Architecture</title>
+<desc id="desc">Reference architecture connecting IntTravel data, IntSR request semantics, IntHQ task modeling, IntRR item representation and decoding, IntBMoE compute, and forthcoming IntLID retrieval-ranking integration. Offline training and online feedback complete the system.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker></defs>
+<rect width="1680" height="1120" fill="#ffffff"/>
+<style>text {font-family:Arial,Helvetica,sans-serif} .title {font-size:30px;font-weight:700;fill:#10243a} .section {font-size:17px;font-weight:700;letter-spacing:1.1px;fill:#40536b} .head {font-size:21px;font-weight:700;fill:#152d46} .body {font-size:17px;fill:#43566c} .small {font-size:15px;fill:#607087} .tag {font-size:16px;font-weight:700}</style>
+<text x="40" y="49" class="title">DreamX-Rec</text>
+<text x="250" y="49" class="section">GENERATIVE RECOMMENDATION SYSTEM</text>
+<text x="40" y="80" class="body">An end-to-end system solution for online search, recommendation, and connected travel decisions</text>
+<rect x="40" y="116" width="310" height="710" rx="12" fill="#f7f9fc" stroke="#d9e2ec" stroke-width="1.5"/>
+<rect x="380" y="116" width="890" height="710" rx="12" fill="#f5f9ff" stroke="#ccddf0" stroke-width="1.5"/>
+<rect x="1300" y="116" width="340" height="710" rx="12" fill="#f7f9fc" stroke="#d9e2ec" stroke-width="1.5"/>
+<text x="60" y="150" class="section">01  DATA FOUNDATION</text>
+<text x="400" y="150" class="section">02  ONLINE MODEL &amp; DECISION ENGINE</text>
+<text x="1320" y="150" class="section">03  BUSINESS SERVING</text>
+<rect x="58" y="177" width="274" height="112" rx="12" fill="#fff" stroke="#d9e2ec" stroke-width="1.5"/>
+<rect x="74" y="191" width="100" height="27" rx="5" fill="#2362a2" stroke="#2362a2" stroke-width="1.5"/>
+<text x="84" y="210" class="tag" style="fill:#ffffff">IntTravel</text>
+<text x="74" y="242" class="body">User profiles · POI catalog</text>
+<text x="74" y="267" class="body">Interactions · scenario · feedback</text>
+<path d="M195 289 V322" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="58" y="323" width="274" height="120" rx="12" fill="#fff" stroke="#d9e2ec" stroke-width="1.5"/>
+<text x="74" y="352" class="head">Behavior &amp; supervision</text>
+<text x="74" y="382" class="body">S / I / F session sequences</text>
+<text x="74" y="407" class="body">Where · how · when · via</text>
+<text x="74" y="432" class="body">Profile and context features</text>
+<path d="M195 443 V476" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="58" y="477" width="274" height="132" rx="12" fill="#fff" stroke="#d9e2ec" stroke-width="1.5"/>
+<text x="74" y="508" class="head">Feature &amp; item assets</text>
+<text x="74" y="538" class="body">Behavior history / online context</text>
+<text x="74" y="563" class="body">Item attributes and identifiers</text>
+<text x="74" y="588" class="body">Item ID mappings: SID / LID</text>
+<rect x="58" y="651" width="274" height="153" rx="12" fill="#eef6f3" stroke="#c6dfd4" stroke-width="1.5"/>
+<text x="74" y="682" class="head">Learning data</text>
+<text x="74" y="713" class="body">Training / validation / test</text>
+<text x="74" y="738" class="body">Task labels and negatives</text>
+<text x="74" y="763" class="body">Item availability over time</text>
+<text x="74" y="788" class="body">IntSR: time-aligned negatives</text>
+<rect x="402" y="177" width="846" height="94" rx="12" fill="#ffffff" stroke="#b7cfe8" stroke-width="1.5"/>
+<rect x="418" y="193" width="77" height="27" rx="5" fill="#2362a2" stroke="#2362a2" stroke-width="1.5"/>
+<text x="428" y="212" class="tag" style="fill:#ffffff">IntSR</text>
+<text x="512" y="213" class="head">Unified request interface</text>
+<text x="418" y="248" class="body">Recommendation / search  ×  retrieval / ranking  ·  Query text, candidate item, task conditions</text>
+<path d="M825 271 V308" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="402" y="309" width="846" height="299" rx="12" fill="#ffffff" stroke="#b7cfe8" stroke-width="1.5"/>
+<text x="422" y="341" class="section">SHARED GENERATIVE MODEL</text>
+<rect x="420" y="359" width="530" height="112" rx="12" fill="#eef4ff" stroke="#cbdcf4" stroke-width="1.5"/>
+<rect x="436" y="373" width="80" height="27" rx="5" fill="#2362a2" stroke="#2362a2" stroke-width="1.5"/>
+<text x="446" y="392" class="tag" style="fill:#ffffff">IntHQ</text>
+<text x="532" y="394" class="head">Task-aware user understanding</text>
+<text x="436" y="426" class="body">Context / task dual streams · task interaction</text>
+<text x="436" y="451" class="body">Hierarchical querying → task-specific representations</text>
+<rect x="970" y="359" width="258" height="112" rx="12" fill="#f2effb" stroke="#d6cef0" stroke-width="1.5"/>
+<rect x="985" y="373" width="112" height="27" rx="5" fill="#7053a1" stroke="#7053a1" stroke-width="1.5"/>
+<text x="995" y="392" class="tag" style="fill:#ffffff">IntBMoE</text>
+<text x="985" y="426" class="body">Full-pool expert composition</text>
+<text x="985" y="451" class="body">Sparse block execution</text>
+<path d="M970 413 H951" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 5"/>
+<rect x="420" y="490" width="808" height="96" rx="12" fill="#edf8f7" stroke="#bfdfda" stroke-width="1.5"/>
+<rect x="436" y="505" width="82" height="27" rx="5" fill="#187b72" stroke="#187b72" stroke-width="1.5"/>
+<text x="446" y="524" class="tag" style="fill:#ffffff">IntRR</text>
+<text x="535" y="526" class="head">Item representation &amp; generative decoding</text>
+<text x="436" y="559" class="body">UID-guided SID redistribution  ·  One backbone token / item  ·  Recursive SID decoding</text>
+<text x="420" y="631" class="small">Multi-task baseline: IntTravel (TIP / TSG / TSF); IntHQ is the task-aware model path.</text>
+<path d="M825 641 V667" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="402" y="668" width="846" height="136" rx="12" fill="#fff8ee" stroke="#d8ae66" stroke-width="1.5" stroke-dasharray="7 5"/>
+<rect x="418" y="684" width="90" height="27" rx="5" fill="#a56c1d" stroke="#a56c1d" stroke-width="1.5"/>
+<text x="428" y="703" class="tag" style="fill:#ffffff">IntLID</text>
+<text x="526" y="705" class="head">Unified retrieval &amp; ranking · LID</text>
+<text x="418" y="740" class="body">Item retrieval / generation   →   candidate scoring   →   coordinated recommendation</text>
+<text x="418" y="777" class="small">Forthcoming: paper and code. Internal mechanisms and interfaces are reserved.</text>
+<rect x="1318" y="177" width="304" height="94" rx="12" fill="#fff" stroke="#d9e2ec" stroke-width="1.5"/>
+<text x="1334" y="208" class="head">Online request</text>
+<text x="1334" y="237" class="body">User · session · current context</text>
+<path d="M1318 224 H1249" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1318" y="322" width="304" height="141" rx="12" fill="#fff" stroke="#d9e2ec" stroke-width="1.5"/>
+<text x="1334" y="353" class="head">Journey decisions</text>
+<text x="1334" y="386" class="body">WHERE   Destination / POI</text>
+<text x="1334" y="408" class="body">HOW       Travel mode</text>
+<text x="1334" y="430" class="body">WHEN     Departure time</text>
+<text x="1334" y="452" class="body">VIA          Along-the-way intent</text>
+<rect x="1318" y="494" width="304" height="115" rx="12" fill="#fff" stroke="#d9e2ec" stroke-width="1.5"/>
+<text x="1334" y="525" class="head">Policy &amp; response</text>
+<text x="1334" y="555" class="body">Item resolution · availability</text>
+<text x="1334" y="580" class="body">Business rules · result delivery</text>
+<path d="M1470 463 V494" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1318" y="651" width="304" height="153" rx="12" fill="#fff" stroke="#d9e2ec" stroke-width="1.5"/>
+<text x="1334" y="682" class="head">Exposure &amp; feedback</text>
+<text x="1334" y="713" class="body">Impressions · clicks · journeys</text>
+<text x="1334" y="738" class="body">Quality / latency monitoring</text>
+<text x="1334" y="763" class="body">Experimentation and logging</text>
+<text x="1334" y="788" class="body">Refresh behavior and labels</text>
+<path d="M1470 609 V651" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M332 543 H367 V319 H402" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M1248 737 H1284 V395 H1318" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M1248 415 H1318" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="40" y="861" width="1600" height="150" rx="12" fill="#f4f7fb" stroke="#cdd9e5" stroke-width="1.5"/>
+<text x="60" y="894" class="section">04  OFFLINE TRAINING &amp; CONTINUOUS DELIVERY</text>
+<rect x="60" y="910" width="340" height="78" rx="12" fill="#fff" stroke="#d9e2ec" stroke-width="1.5"/>
+<text x="75" y="939" class="head">Prepare &amp; index</text>
+<text x="75" y="970" class="small">Sequences · embeddings · SID / LID</text>
+<rect x="445" y="910" width="350" height="78" rx="12" fill="#fff" stroke="#d9e2ec" stroke-width="1.5"/>
+<text x="460" y="939" class="head">Train &amp; evaluate</text>
+<text x="460" y="970" class="small">Task / item objectives · quality · cost</text>
+<rect x="840" y="910" width="350" height="78" rx="12" fill="#fff" stroke="#d9e2ec" stroke-width="1.5"/>
+<text x="855" y="939" class="head">Version &amp; deploy</text>
+<text x="855" y="970" class="small">Model weights · item assets · rollout</text>
+<rect x="1235" y="910" width="380" height="78" rx="12" fill="#fff" stroke="#d9e2ec" stroke-width="1.5"/>
+<text x="1250" y="939" class="head">Observe &amp; improve</text>
+<text x="1250" y="970" class="small">Offline evaluation · online feedback</text>
+<path d="M400 949 H445" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M795 949 H840" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M1190 949 H1235" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M195 804 V861" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M1470 804 V861" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M1020 861 V839 H365 V290 H620 V309" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 5"/>
+<text x="510" y="852" class="small">Versioned model &amp; item assets</text>
+<text x="40" y="1050" class="section">SYSTEM SOLUTION VIEW</text>
+<text x="290" y="1050" class="small">Arrows show intended data and inference flow; they do not imply a jointly released runtime.</text>
+<text x="40" y="1084" class="small">Code available: IntTravel · IntHQ · IntRR · IntBMoE     |     Paper only: IntSR     |     Upcoming: IntLID</text>
+<text x="40" y="1106" class="small">Serving, deployment, and feedback infrastructure are system responsibilities outside the current public implementation.</text>
+</svg>
