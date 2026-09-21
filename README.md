@@ -19,11 +19,8 @@ The six works address successive responsibilities within this system: **IntTrave
 
 IntTravel, IntHQ, and the IntBMoE recommendation example share the same [data preprocessing pipeline](data_process/), with separate model and training implementations. IntBMoE also includes [language and vision examples](intbmoe/README.md) with their own data pipelines.
 
-<!-- Continuous image bands avoid the repository viewer's 500px image-height cap.
-     Keep width/height/style attributes unset; regenerate with docs/scripts/render-architecture.cjs. -->
-<a href="docs/assets/dreamx-rec-architecture.png"><img src="docs/assets/dreamx-rec-architecture-1.png" alt="DreamX-Rec architecture: data sources and request interface"><br><img src="docs/assets/dreamx-rec-architecture-2.png" alt="DreamX-Rec architecture: features, generative model and business decisions"><br><img src="docs/assets/dreamx-rec-architecture-3.png" alt="DreamX-Rec architecture: unified retrieval and ranking, learning data and feedback"><br><img src="docs/assets/dreamx-rec-architecture-4.png" alt="DreamX-Rec architecture: offline training, deployment and release scope"></a>
+<img width="6720" height="4480" alt="dreamx-rec-architecture" src="https://github.com/user-attachments/assets/a9391aa0-2de6-471f-89c6-e40d2b6bb05c" />
 
-[View full-resolution PNG](docs/assets/dreamx-rec-architecture.png) · [Download vector source (SVG)](docs/assets/dreamx-rec-architecture.svg)
 
 The architecture connects **data foundation, online modeling and decisions, business serving, and offline training** into a complete system solution. IntTravel supplies the behavioral foundation; IntSR defines request semantics; IntHQ models user context and task interactions; IntRR connects item representations to generative decoding; IntBMoE provides efficient model capacity; and IntLID covers unified retrieval and ranking. The shared item-asset layer accommodates both SID and LID representations, with SID-based representation and decoding in IntRR and the LID role reserved for IntLID. Offline training publishes versioned model and item assets to online inference, while exposure and feedback support subsequent learning and evaluation.
 
