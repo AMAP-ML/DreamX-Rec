@@ -8,10 +8,7 @@ import sys
 import csv
 import json
 import math
-import random
-import copy
 import argparse
-from collections import defaultdict
 
 try:
     from .feature_config import mfc, map_dict
@@ -69,6 +66,7 @@ class FeaturePostProcessor(object):
         # Parse input parameters
         user_id = str(in_params.get('user_id', ''))
         seq_info_json = in_params.get('seq_info', '')
+        rand_1 = in_params.get('rand_1', '')
         
         # Debug information
         if not seq_info_json:
@@ -100,6 +98,11 @@ class FeaturePostProcessor(object):
         try:
             model_feature = self.generate_model_feature(content)
             model_feature['user_id'] = user_id
+            if rand_1 != '':
+                split_value = float(rand_1)
+                if split_value < 0.0 or split_value >= 1.0:
+                    raise ValueError("rand_1 must be in [0, 1)")
+                model_feature['rand_1'] = split_value
             return model_feature
         except Exception as e:
             print("Error: user_id={} feature generation failed: {}".format(user_id, str(e)))
@@ -507,9 +510,8 @@ class FeaturePostProcessor(object):
             for sample in processed_data:
                 row = []
                 for col in all_columns:
-                    if col == 'user_id':
-                        # Write user_id field directly
-                        row.append(sample.get('user_id', ''))
+                    if col in ('user_id', 'rand_1'):
+                        row.append(sample.get(col, ''))
                     else:
                         # Other fields are lists, convert to pure array format string
                         value = sample.get(col, [])

@@ -1,0 +1,170 @@
+# @package _global_
+data_dir: ???
+embedding_model: google/flan-t5-xl
+
+task_name: inference
+#id: ${now:%Y-%m-%d}/${now:%H-%M-%S}-${data_dir}
+id: output/${now:%H-%M-%S}-${data_dir}
+tags:
+- amazon
+- semantic-embeddings-inference
+model:
+  loss_function: null
+  optimizer: null
+  scheduler: null
+  evaluator: null
+  _target_: src.modules.semantic_embedding_inference_module.SemanticEmbeddingInferenceModule
+  semantic_embedding_model_input_map:
+    input_ids: text_tokens
+    attention_mask: text_mask
+  semantic_embedding_model:
+    _target_: src.components.network_blocks.hf_language_model.HFLanguageModel
+    huggingface_model:
+      _target_: transformers.T5EncoderModel.from_pretrained
+      pretrained_model_name_or_path: ${embedding_model}
+    aggregator:
+      _target_: src.models.components.network_blocks.embedding_aggregator.EmbeddingAggregator
+      aggregation_strategy:
+        _target_: src.models.components.network_blocks.aggregation_strategy.MeanAggregation
+callbacks:
+  bq_writer: null
+  pickle_writer:
+    _target_: src.utils.inference_utils.LocalPickleWriter
+    output_dir: ${paths.output_dir}/pickle
+    flush_frequency: 64
+    write_interval: batch
+    should_merge_files_on_main: true
+    prediction_key_name: item_id
+    prediction_name: embedding
+    should_merge_list_of_keyed_tensors_to_single_tensor: true
+ckpt_path: null
+paths:
+  root_dir: .
+  data_dir: data/amazon_data/${data_dir}
+  log_dir: ${paths.root_dir}/logs
+  output_dir: ${hydra:runtime.output_dir}
+  work_dir: ${hydra:runtime.cwd}
+  profile_dir: ${hydra:run.dir}/profile_output
+  metadata_dir: ${paths.output_dir}/metadata
+logger: {}
+trainer:
+  _target_: lightning.pytorch.trainer.Trainer
+  default_root_dir: ${paths.output_dir}
+  min_steps: 1
+  max_steps: 80000
+  max_epochs: 10
+  accelerator: gpu
+  devices: -1
+  num_nodes: 1
+  precision: 32
+  log_every_n_steps: 2500
+  val_check_interval: 5000
+  deterministic: false
+  accumulate_grad_batches: 1
+  profiler:
+    _target_: lightning.pytorch.profilers.PassThroughProfiler
+data_loading:
+  tokenizer_config:
+    max_length: 128
+    padding: max_length
+    truncation: true
+    add_special_tokens: true
+    postprocess_eos_token: false
+    tokenizer:
+      _target_: transformers.AutoTokenizer.from_pretrained
+      pretrained_model_name_or_path: ${embedding_model}
+  features_config:
+    features:
+    - name: id
+      num_placeholder_tokens: 0
+      is_item_ids: true
+      embeddings: ???
+      type:
+        _target_: torch.__dict__.get
+        _args_:
+        - int32
+    - name: text
+      type:
+        _target_: torch.__dict__.get
+        _args_:
+        - bytes
+      is_text: true
+    - name: embedding
+      type:
+        _target_: torch.__dict__.get
+        _args_:
+        - float32
+      is_embedding: true
+  dataset_config:
+    dataset:
+      _target_: src.data.loading.components.interfaces.ItemDatasetConfig
+      item_id_field: id
+      keep_item_id: true
+      iterate_per_row: true
+      data_iterator:
+        _target_: src.data.loading.components.iterators.TFRecordIterator
+      features_to_consider: ${extract_fields_from_list_of_dicts:${data_loading.features_config.features},
+        "name", False, "is_text", "True"}
+      num_placeholder_tokens_map: ${create_map_from_list_of_dicts:${data_loading.features_config.features},
+        "name", "num_placeholder_tokens"}
+      preprocessing_functions:
+      - _target_: src.data.loading.components.pre_processing.filter_features_to_consider
+        _partial_: true
+      - _target_: src.data.loading.components.pre_processing.convert_to_dense_numpy_array
+        _partial_: true
+        features_to_apply:
+        - id
+        - text
+      - _target_: src.data.loading.components.pre_processing.convert_fields_to_tensors
+        _partial_: true
+        features_to_apply:
+        - id
+      - _target_: src.data.loading.components.pre_processing.convert_bytes_to_string
+        _partial_: true
+        features_to_apply:
+        - text
+      - _target_: src.data.loading.components.pre_processing.tokenize_text_features
+        _partial_: true
+        features_to_apply:
+        - text
+        tokenizer_config: ${data_loading.tokenizer_config}
+      - _target_: src.data.loading.components.pre_processing.squeeze_tensor_in_place
+        _partial_: true
+        features_to_apply:
+        - text
+        - text_mask
+      field_type_map: ${create_map_from_list_of_dicts:${data_loading.features_config.features},
+        "name", "type"}
+  datamodule:
+    _target_: src.data.loading.datamodules.sequence_datamodule.ItemDataModule
+    predict_dataloader_config:
+      _target_: src.data.loading.components.interfaces.ItemDataloaderConfig
+      dataset_class:
+        _target_: src.data.loading.components.dataloading.UnboundedSequenceIterable
+        _partial_: true
+      data_folder: ${paths.data_dir}/items
+      should_shuffle_rows: false
+      batch_size_per_device: 8
+      num_workers: 2
+      assign_files_by_size: true
+      timeout: 60
+      drop_last: false
+      pin_memory: false
+      persistent_workers: true
+      collate_fn:
+        _target_: src.data.loading.components.collate_functions.collate_fn_items
+        _partial_: true
+        item_id_field: ${data_loading.dataset_config.dataset.item_id_field}
+        feature_to_input_name:
+          id: item_ids
+          text: text_tokens
+          text_mask: text_mask
+          embedding: input_embedding
+      dataset_config: ${data_loading.dataset_config.dataset}
+      limit_files: null
+extras:
+  ignore_warnings: false
+  enforce_tags: true
+  print_config_warnings: true
+  print_config: true
+seed: 42

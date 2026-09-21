@@ -10,10 +10,8 @@ import sys
 import csv
 import json
 import random
-import time
 import copy
 import argparse
-from collections import defaultdict
 
 # Compatible with Python2.7 dictionary ordering
 try:
@@ -24,10 +22,12 @@ except ImportError:
 
 class DataProcessor(object):
     def __init__(self, data_dir='./raw_data', output_dir='./output', 
-                 input_files=None, required_columns=None, max_actions=None):
+                 input_files=None, required_columns=None, max_actions=None, seed=0):
         self.data_dir = data_dir
         self.output_dir = output_dir
         self.max_actions = max_actions
+        self.negative_rng = random.Random(seed)
+        self.split_rng = random.Random(seed + 1)
         
         # Default input file configuration
         self.default_files = {
@@ -55,10 +55,10 @@ class DataProcessor(object):
         self.user_actions = {}  # user_id -> actions list
         self.user_profiles = {}  # user_id -> profile info
         self.poi_info = {}  # poi_id -> poi info
+        self.poi_ids = []
         self.geographic_poi_info = {}  # geographic_id -> poi_info string
         
         # Configuration parameters
-        self.max_poi_index = 7291872  # Total POI count
         self.neg_sample_num = 14  # Random negative sampling count
         self.tile_sample_num = 50  # Hard negative sampling count
         self.max_seq_length = 40  # Maximum sequence length
@@ -207,6 +207,10 @@ class DataProcessor(object):
                     'category_id': row['category_id'],
                     'administrative_region_id': row['administrative_region_id']
                 }
+        self.poi_ids = self.get_actual_poi_ids()
+
+    def get_actual_poi_ids(self):
+        return sorted(self.poi_info.keys(), key=int)
     
     def _load_geographic_poi_info(self):
         """Load POI info aggregated by geographic ID"""
@@ -218,54 +222,49 @@ class DataProcessor(object):
                 geographic_id = row['geographic_id']
                 self.geographic_poi_info[geographic_id] = row['poi_info']
     
-    def get_poi_neg_sample_ids(self, target_poi_index, min_index, max_index, sample_num, label_poi_index=''):
+    def get_poi_neg_sample_ids(self, excluded_poi_ids, sample_num):
         """Random negative sampling function"""
+        excluded = set(str(value) for value in excluded_poi_ids if value not in ('', None))
+        available_count = len(self.poi_ids) - sum(
+            1 for poi_id in excluded if poi_id in self.poi_info
+        )
+        target_count = min(sample_num, available_count)
+        if target_count <= 0:
+            return []
+        if available_count <= sample_num:
+            candidates = [poi_id for poi_id in self.poi_ids if poi_id not in excluded]
+            return self.negative_rng.sample(candidates, len(candidates))
         sampled = set()
         result = []
-        if max_index < sample_num + 1:
-            return result
-        while len(sampled) < sample_num:
-            num = random.randint(min_index, max_index)
-            if num not in sampled and str(num) != str(target_poi_index) and str(num) != str(label_poi_index):
-                sampled.add(num)
-                result.append(num)
+        while len(result) < target_count:
+            poi_id = self.poi_ids[self.negative_rng.randrange(len(self.poi_ids))]
+            if poi_id not in excluded and poi_id not in sampled:
+                sampled.add(poi_id)
+                result.append(poi_id)
         return result
     
-    def neg_sampling_within_geographic(self, target_poi_index, poi_geographic_15_index, geographic_poi_info, sample_num):
+    def neg_sampling_within_geographic(self, excluded_poi_ids, poi_geographic_15_index, geographic_poi_info, sample_num):
         """Negative sampling within geographic"""
-        result = []
-        poi_info_list = geographic_poi_info.split(";")
-        if sample_num >= len(poi_info_list) - 1:
-            for i in range(len(poi_info_list)):
-                cur_poi_info = poi_info_list[i]
-                cur_poi_info_list = cur_poi_info.split(",")
-                cur_poi_id = cur_poi_info_list[0]
-                cur_poi_base_score = cur_poi_info_list[1]
-                cur_poi_category_id = cur_poi_info_list[2]
-                cur_poi_adcode = cur_poi_info_list[3]
-                if int(cur_poi_id) == int(target_poi_index):
-                    continue 
-                feature_list = [cur_poi_id, poi_geographic_15_index, cur_poi_base_score, cur_poi_category_id, cur_poi_adcode]
-                result.append(",".join(feature_list))
-        else:
-            sampled = set()
-            count = 0
-            while len(sampled) < sample_num:
-                num = random.randint(0, len(poi_info_list) - 1)
-                if num not in sampled:
-                    cur_poi_info = poi_info_list[num]
-                    cur_poi_info_list = cur_poi_info.split(",")
-                    cur_poi_id = cur_poi_info_list[0]
-                    cur_poi_base_score = cur_poi_info_list[1]
-                    cur_poi_category_id = cur_poi_info_list[2]
-                    cur_poi_adcode = cur_poi_info_list[3]
-                    if int(cur_poi_id) == int(target_poi_index):
-                        continue 
-                    feature_list = [cur_poi_id, poi_geographic_15_index, cur_poi_base_score, cur_poi_category_id, cur_poi_adcode]
-                    result.append(",".join(feature_list))
-                    sampled.add(num)
-                    count = count + 1
-        return ";".join(result)
+        excluded = set(str(value) for value in excluded_poi_ids if value not in ('', None))
+        candidates = []
+        seen = set()
+        for cur_poi_info in geographic_poi_info.split(";"):
+            cur_poi_info_list = cur_poi_info.split(",")
+            if len(cur_poi_info_list) < 4:
+                continue
+            cur_poi_id = cur_poi_info_list[0]
+            if cur_poi_id in excluded or cur_poi_id in seen:
+                continue
+            seen.add(cur_poi_id)
+            candidates.append(",".join([
+                cur_poi_id,
+                poi_geographic_15_index,
+                cur_poi_info_list[1],
+                cur_poi_info_list[2],
+                cur_poi_info_list[3]
+            ]))
+        target_count = min(sample_num, len(candidates))
+        return ";".join(self.negative_rng.sample(candidates, target_count))
     
     def process_user_data(self, user_id):
         """Process all data for a single user"""
@@ -306,25 +305,22 @@ class DataProcessor(object):
             action['via_info'] = via_info
             
             # Random negative sampling
-            label_poi_id = action['via_poi_id'] if action['via_poi_id'] else poi_id
             neg_sample_ids = self.get_poi_neg_sample_ids(
-                label_poi_id, 0, self.max_poi_index, self.neg_sample_num
+                [poi_id, action['via_poi_id']], self.neg_sample_num
             )
             
             # Construct negative sample info
             negative_samples = []
-            for neg_id in neg_sample_ids:
-                neg_id_str = str(neg_id)
-                if neg_id_str in self.poi_info:
-                    neg_poi = self.poi_info[neg_id_str]
-                    neg_sample_info = ",".join([
-                        neg_id_str,
-                        neg_poi['geographic_id'],
-                        neg_poi['normalized_score'],
-                        neg_poi['category_id'],
-                        neg_poi['administrative_region_id']
-                    ])
-                    negative_samples.append(neg_sample_info)
+            for neg_id_str in neg_sample_ids:
+                neg_poi = self.poi_info[neg_id_str]
+                neg_sample_info = ",".join([
+                    neg_id_str,
+                    neg_poi['geographic_id'],
+                    neg_poi['normalized_score'],
+                    neg_poi['category_id'],
+                    neg_poi['administrative_region_id']
+                ])
+                negative_samples.append(neg_sample_info)
             action['negative_samples'] = ";".join(negative_samples)
             
 
@@ -336,7 +332,7 @@ class DataProcessor(object):
                 neg_sample_geographic_index = action['target_poi_geographic_id']
             if neg_sample_geographic_index in self.geographic_poi_info:
                 geographic_negative_samples = self.neg_sampling_within_geographic(
-                    label_poi_id,
+                    [poi_id, action['via_poi_id']] + neg_sample_ids,
                     neg_sample_geographic_index,
                     self.geographic_poi_info[neg_sample_geographic_index],
                     self.tile_sample_num
@@ -396,7 +392,6 @@ class DataProcessor(object):
                 next_action_list = seq_list[i+1].split('|')
                 next_timestamp_unix = next_action_list[0]
                 next_poi_index = next_action_list[3]
-                next_via_info = next_action_list[11] if len(next_action_list) > 11 else ""
                 time_diff = int(next_timestamp_unix) - int(timestamp_unix)
                 merge_condition = (poi_index == next_poi_index and 
                                  via_info == "" and 
@@ -591,7 +586,7 @@ class DataProcessor(object):
             results.append({
                 'user_id': user_id,
                 'seq_info': seq_info_json,
-                'rand_1': random.random()
+                'rand_1': self.split_rng.random()
             })
             
             if len(results) % 100 == 0:
@@ -653,6 +648,8 @@ def main():
                        help='Skip column name check')
     parser.add_argument('--max-actions', type=int, default=None,
                        help='Only read the first N interaction rows (default: all)')
+    parser.add_argument('--seed', type=int, default=0,
+                       help='Random seed (default: 0)')
     
     args = parser.parse_args()
     
@@ -677,7 +674,7 @@ def main():
     
     # Initialize processor
     processor = DataProcessor(args.input_dir, args.output_dir, input_files=input_files,
-                              max_actions=args.max_actions)
+                              max_actions=args.max_actions, seed=args.seed)
     
     # Load data (including column check)
     if not processor.load_data(check_columns=not args.skip_column_check):

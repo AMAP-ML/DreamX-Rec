@@ -1,0 +1,19 @@
+defaults:
+  - default
+
+# If you want to pass parameters like the static_graph flag,
+# comment this one out and uncomment the one below.
+# strategy: ddp
+
+# Enable find_unused_parameters to handle unused parameters in DDP
+# Optimization: disable this option when all parameters are used to improve performance
+# Only enable when model has conditional branches that cause some parameters not to participate in forward pass
+strategy:
+  _target_: lightning.pytorch.strategies.DDPStrategy
+  find_unused_parameters: False  # Disabled by default for better performance
+  static_graph: False  # Keep False since model has dynamic branches (teacher-forcing)
+
+accelerator: gpu
+devices: -1
+num_nodes: 1
+sync_batchnorm: True
